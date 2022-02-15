@@ -43,22 +43,6 @@
             )
         }
 
-        const Display = (props) => {
-            return (
-                <div className="d-flex flex-fill flex-column">
-                    <label id="result" className="flex-fill text-end p-2">{props.result}</label>
-                    <label id="display" className="flex-fill text-end p-2">{props.input}</label>
-                </div>
-            )
-        }
-
-        const ButtonControl = (props) => {
-
-            const css = props.css ? { ...props.css } : { width: "25%" };
-
-            return <button id={props.controlConfig.id} className="calc-control btn btn-primary rounded-0 border-dark p-2" onClick={props.handleButtonControlInput} style={css}>{props.controlConfig.text}</button>
-        }
-
         const Header = (props) => {
             return <h1 className="d-flex justify-content-center">{props.text}</h1>
         }
