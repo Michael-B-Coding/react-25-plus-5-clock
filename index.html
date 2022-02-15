@@ -1,0 +1,142 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>React - JavaScript Calculator</title>
+
+    <!-- <link rel="stylesheet" href="css/styles.css?v=1.0"> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+
+    <style>
+        #App * {
+            font-size: 32px;
+            background-color: black;
+            color: white;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="App"></div>
+
+    <script type="text/babel">
+
+        const DebugDisplay = (props) => {
+            return (
+                <div className="d-flex flex-fill flex-column">
+                    <div>Debug Display:</div>
+                    {
+                        Object.keys(props).map((propName, index) => {
+                            return (<div>
+                                <label>{propName}: </label>
+                                <label>{props[propName]}</label>
+                            </div>)
+                        })
+                    }
+                </div>
+            )
+        }
+
+        const Display = (props) => {
+            return (
+                <div className="d-flex flex-fill flex-column">
+                    <label id="result" className="flex-fill text-end p-2">{props.result}</label>
+                    <label id="display" className="flex-fill text-end p-2">{props.input}</label>
+                </div>
+            )
+        }
+
+        const ButtonControl = (props) => {
+
+            const css = props.css ? { ...props.css } : { width: "25%" };
+
+            return <button id={props.controlConfig.id} className="calc-control btn btn-primary rounded-0 border-dark p-2" onClick={props.handleButtonControlInput} style={css}>{props.controlConfig.text}</button>
+        }
+
+        const Header = (props) => {
+            return <h1 className="d-flex justify-content-center">{props.text}</h1>
+        }
+
+        const BreakContainer = (props) => {
+            return (
+                <div className="d-flex flex-column justify-content-center">
+                    <label id="break-label">Break Length</label>
+                    <div className="d-flex flex-row justify-content-center">
+                        <button id="break-increment"><i class="bi bi-arrow-down"></i></button>
+                        <label id="break-length">5</label>
+                        <button id="break-decrement"><i class="bi bi-arrow-up"></i></button>
+                    </div>
+                </div>
+            )
+        }
+        const SessionContainer = (props) => {
+            return (
+                <div className="d-flex flex-column justify-content-center">
+                    <label id="session-label">Session Length</label>
+                    <div className="d-flex flex-row justify-content-center">
+                        <button id="session-increment"><i class="bi bi-arrow-down"></i></button>
+                        <label id="session-length">25</label>
+                        <button id="session-decrement"><i class="bi bi-arrow-up"></i></button>
+                    </div>
+                </div>
+            )
+        }
+        const TimerContainer = (props) => {
+            return (
+                <div className="d-flex flex-column justify-content-center">
+                    <label id="timer-label" className="d-flex justify-content-center">Session</label>
+                    <label id="time-left" className="d-flex justify-content-center">25:00</label>
+                    <div className="d-flex flex-row justify-content-center">
+                        <button id="start_stop"><i class="bi bi-play"></i><i class="bi bi-pause"></i></button>
+                        <button id="reset"><i class="bi bi-arrow-counterclockwise"></i></button>
+                    </div>
+                </div>
+            )
+        }
+
+
+        // App
+        class TwentyfiveByFiveClock extends React.Component {
+            constructor(props) {
+                super(props);
+            }
+
+            render() {
+
+                let style = {
+                    width: "50%"
+                }
+
+                return (
+                    <div className="d-flex justify-content-center">
+                        <div className="d-flex flex-column justify-content-center border border-dark" style={style}>
+                            <Header text="25 + 5 Clock"/>
+                            <div className="d-flex flex-row justify-content-center">
+                                <BreakContainer />
+                                <SessionContainer />
+                            </div>
+                            <TimerContainer />
+                        </div>
+                    </div>
+                )
+            }
+        }
+        ReactDOM.render(
+            <TwentyfiveByFiveClock />,
+            document.getElementById('App')
+        );
+    </script>
+
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
+</body>
+
+</html>
