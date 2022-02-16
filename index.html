@@ -52,9 +52,13 @@
                 <div className="d-flex flex-column justify-content-center">
                     <label id="break-label">Break Length</label>
                     <div className="d-flex flex-row justify-content-center">
-                        <button id="break-increment"><i class="bi bi-arrow-down"></i></button>
-                        <label id="break-length">5</label>
-                        <button id="break-decrement"><i class="bi bi-arrow-up"></i></button>
+                        <button 
+                            id="break-increment"
+                            onClick={props.handleBreakLengthDec}><i class="bi bi-arrow-down"></i></button>
+                        <label id="break-length">{props.breakLength}</label>
+                        <button 
+                            id="break-decrement"
+                            onClick={props.handleBreakLengthInc}><i class="bi bi-arrow-up"></i></button>
                     </div>
                 </div>
             )
@@ -64,18 +68,33 @@
                 <div className="d-flex flex-column justify-content-center">
                     <label id="session-label">Session Length</label>
                     <div className="d-flex flex-row justify-content-center">
-                        <button id="session-increment"><i class="bi bi-arrow-down"></i></button>
-                        <label id="session-length">25</label>
-                        <button id="session-decrement"><i class="bi bi-arrow-up"></i></button>
+                        <button 
+                            id="session-increment"
+                            onClick={props.handleSessionLengthDec}><i class="bi bi-arrow-down"></i></button>
+                        <label id="session-length">{props.sessionLength}</label>
+                        <button 
+                            id="session-decrement"
+                            onClick={props.handleSessionLengthInc}><i class="bi bi-arrow-up"></i></button>
                     </div>
                 </div>
             )
         }
         const TimerContainer = (props) => {
+            let mm = props.timeLeft.min;
+            let ss = props.timeLeft.sec;
+
+            let increment = (mm) => {
+                return Number(mm) + 1;
+            }
+
+            let decrement = (mm) => {
+                return Number(mm) - 1;
+            }
+
             return (
                 <div className="d-flex flex-column justify-content-center">
                     <label id="timer-label" className="d-flex justify-content-center">Session</label>
-                    <label id="time-left" className="d-flex justify-content-center">25:00</label>
+                    <label id="time-left" className="d-flex justify-content-center">{mm}:{ss}</label>
                     <div className="d-flex flex-row justify-content-center">
                         <button id="start_stop"><i class="bi bi-play"></i><i class="bi bi-pause"></i></button>
                         <button id="reset"><i class="bi bi-arrow-counterclockwise"></i></button>
@@ -89,6 +108,61 @@
         class TwentyfiveByFiveClock extends React.Component {
             constructor(props) {
                 super(props);
+                this.state = {
+                    breakLength: 5,
+                    sessionLength: 25,
+                    timeSet: {
+                        min: "25",
+                        sec: "00"
+                    },
+                    timeLeft: {
+                        min: "25",
+                        sec: "00"
+                    },
+                    timerRunning: false
+                };
+
+                this.handleBreakLengthInc = this.handleBreakLengthInc.bind(this);
+                this.handleBreakLengthDec = this.handleBreakLengthDec.bind(this);
+                this.handleSessionLengthInc = this.handleSessionLengthInc.bind(this);
+                this.handleSessionLengthDec = this.handleSessionLengthDec.bind(this);
+            }
+
+            componentDidUpdate = (prevProps, prevState) => {
+                console.log(this.state);
+            }
+
+            handleBreakLengthInc = () => {
+                this.setState((prevState) => ({
+                    breakLength: prevState.breakLength + 1
+                }));
+            }
+            handleBreakLengthDec = () => {
+                this.setState((prevState) => ({
+                    breakLength: prevState.breakLength - 1
+                }));
+            }
+
+            handleSessionLengthInc = () => {
+                this.setState((prevState) => ({
+                    sessionLength: prevState.sessionLength + 1
+                }));
+            }
+            handleSessionLengthDec = () => {
+                this.setState((prevState) => ({
+                    sessionLength: prevState.sessionLength - 1
+                }));
+            }
+
+            updateTimeSet = (newTimeSet) => {
+                this.setState((prevState) => ({
+                    timeSet: newTimeSet
+                }));
+            }
+            updateTimeLeft = (newTimeLeft) => {
+                this.setState((prevState) => ({
+                    timeLeft: newTimeLeft
+                }));
             }
 
             render() {
@@ -97,15 +171,25 @@
                     width: "50%"
                 }
 
+                let fullScreen = {
+                    height: "100vh"
+                }
+
                 return (
-                    <div className="d-flex justify-content-center">
+                    <div className="d-flex justify-content-center" style={{...fullScreen}} >
                         <div className="d-flex flex-column justify-content-center border border-dark" style={style}>
-                            <Header text="25 + 5 Clock"/>
+                            <Header text="25 + 5 Clock" />
                             <div className="d-flex flex-row justify-content-center">
-                                <BreakContainer />
-                                <SessionContainer />
+                                <BreakContainer 
+                                    breakLength={this.state.breakLength}
+                                    handleBreakLengthInc={this.handleBreakLengthInc}
+                                    handleBreakLengthDec={this.handleBreakLengthDec}/>
+                                <SessionContainer 
+                                    sessionLength={this.state.sessionLength}
+                                    handleSessionLengthInc={this.handleSessionLengthInc}
+                                    handleSessionLengthDec={this.handleSessionLengthDec}/>
                             </div>
-                            <TimerContainer />
+                            <TimerContainer timeLeft={{...this.state.timeLeft}}/>
                         </div>
                     </div>
                 )
@@ -121,6 +205,7 @@
     <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/redux@latest/dist/redux.min.js"></script>
 </body>
 
 </html>
