@@ -52,11 +52,11 @@
                 <div className="d-flex flex-column justify-content-center">
                     <label id="break-label">Break Length</label>
                     <div className="d-flex flex-row justify-content-center">
-                        <button 
+                        <button
                             id="break-increment"
                             onClick={props.handleBreakLengthDec}><i class="bi bi-arrow-down"></i></button>
                         <label id="break-length">{props.breakLength}</label>
-                        <button 
+                        <button
                             id="break-decrement"
                             onClick={props.handleBreakLengthInc}><i class="bi bi-arrow-up"></i></button>
                     </div>
@@ -66,13 +66,13 @@
         const SessionContainer = (props) => {
             return (
                 <div className="d-flex flex-column justify-content-center">
-                    <label id="session-label">Session Length</label>
+                    <label id="session-label" className="d-flex justify-content-center">Session Length</label>
                     <div className="d-flex flex-row justify-content-center">
-                        <button 
+                        <button
                             id="session-increment"
                             onClick={props.handleSessionLengthDec}><i class="bi bi-arrow-down"></i></button>
                         <label id="session-length">{props.sessionLength}</label>
-                        <button 
+                        <button
                             id="session-decrement"
                             onClick={props.handleSessionLengthInc}><i class="bi bi-arrow-up"></i></button>
                     </div>
@@ -96,8 +96,8 @@
                     <label id="timer-label" className="d-flex justify-content-center">Session</label>
                     <label id="time-left" className="d-flex justify-content-center">{mm}:{ss}</label>
                     <div className="d-flex flex-row justify-content-center">
-                        <button id="start_stop"><i class="bi bi-play"></i><i class="bi bi-pause"></i></button>
-                        <button id="reset"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        <button id="start_stop" onClick={props.toggleTimer}><i class="bi bi-play"></i><i class="bi bi-pause"></i></button>
+                        <button id="reset" onClick={props.reset}><i class="bi bi-arrow-counterclockwise"></i></button>
                     </div>
                 </div>
             )
@@ -111,6 +111,7 @@
                 this.state = {
                     breakLength: 5,
                     sessionLength: 25,
+                    activeTimer: "session",
                     timeSet: {
                         min: "25",
                         sec: "00"
@@ -122,6 +123,11 @@
                     timerRunning: false
                 };
 
+                this.timerObject = null;
+
+                this.reset = this.reset.bind(this);
+                this.toggleTimer = this.toggleTimer.bind(this);
+
                 this.handleBreakLengthInc = this.handleBreakLengthInc.bind(this);
                 this.handleBreakLengthDec = this.handleBreakLengthDec.bind(this);
                 this.handleSessionLengthInc = this.handleSessionLengthInc.bind(this);
@@ -132,37 +138,130 @@
                 console.log(this.state);
             }
 
+            setDefaults = () => {
+                this.setState(() => ({
+                    breakLength: 5,
+                    sessionLength: 25,
+                    activeTimer: "session",
+                    timeSet: {
+                        min: "25",
+                        sec: "00"
+                    },
+                    timeLeft: {
+                        min: "25",
+                        sec: "00"
+                    },
+                    timerRunning: false
+                }));
+            }
+
+            formatNumberToTwoDigitString = (num) => {
+                return String(num).padStart(2, "0");
+            }
+
             handleBreakLengthInc = () => {
+                // dont allow incrementing greater than 60
+                if (this.state.breakLength == 60) {
+                    return;
+                }
+
                 this.setState((prevState) => ({
                     breakLength: prevState.breakLength + 1
                 }));
+                this.updateTimeSet();
+                this.updateTimeLeft();
             }
             handleBreakLengthDec = () => {
+                // dont allow decrementing to 0
+                if (this.state.breakLength == 1) {
+                    return;
+                }
+
                 this.setState((prevState) => ({
                     breakLength: prevState.breakLength - 1
                 }));
+                this.updateTimeSet();
+                this.updateTimeLeft();
             }
 
             handleSessionLengthInc = () => {
+                // dont allow incrementing greater than 60
+                if (this.state.sessionLength == 60) {
+                    return;
+                }
+
                 this.setState((prevState) => ({
                     sessionLength: prevState.sessionLength + 1
                 }));
+                this.updateTimeSet();
+                this.updateTimeLeft();
             }
             handleSessionLengthDec = () => {
+                // dont allow decrementing to 0
+                if (this.state.sessionLength == 1) {
+                    return;
+                }
+
                 this.setState((prevState) => ({
                     sessionLength: prevState.sessionLength - 1
                 }));
+                this.updateTimeSet();
+                this.updateTimeLeft();
             }
 
-            updateTimeSet = (newTimeSet) => {
+            updateTimeSet = () => {
                 this.setState((prevState) => ({
-                    timeSet: newTimeSet
+                    timeSet: prevState.activeTimer == "session" ? { min: this.formatNumberToTwoDigitString(prevState.sessionLength), sec: "00" } : { min: this.formatNumberToTwoDigitString(prevState.breakLength), sec: "00" }
                 }));
             }
-            updateTimeLeft = (newTimeLeft) => {
+            updateTimeLeft = () => {
                 this.setState((prevState) => ({
-                    timeLeft: newTimeLeft
+                    timeLeft: !prevState.timerRunning ? prevState.timeSet : prevState.timeLeft
                 }));
+            }
+
+            reset = () => {
+                this.stopTimer();
+                this.setDefaults();
+            }
+
+            timerTick = () => {
+                console.log("tick");
+                let sec = Number(this.state.timeLeft.sec) == 0 ? 59 : Number(this.state.timeLeft.sec) - 1;
+                let min = Number(this.state.timeLeft.sec) == 0 ? Number(this.state.timeLeft.min) - 1 : Number(this.state.timeLeft.min);
+                this.setState((prevState) => ({
+                    //timeLeft: Object.assign({}, prevState.timeLeft, { min: min })
+                    timeLeft: { min: this.formatNumberToTwoDigitString(min), sec: this.formatNumberToTwoDigitString(sec) }
+                }));
+            }
+
+            toggleTimer = () => {
+                if (!this.state.timerRunning) {
+                    this.startTimer();
+                } else {
+                    this.stopTimer();
+                }
+            }
+
+            startTimer = () => {
+                if (!this.state.timerRunning) {
+                    this.timerObject = setInterval(
+                        this.timerTick,
+                        1000
+                    );
+                    this.setState({
+                        timerRunning: true
+                    });
+                }
+            }
+
+            stopTimer = () => {
+                if (this.state.timerRunning) {
+                    clearInterval(this.timerObject);
+                    this.setState({
+                        timerRunning: false
+                    });
+                }
             }
 
             render() {
@@ -176,20 +275,23 @@
                 }
 
                 return (
-                    <div className="d-flex justify-content-center" style={{...fullScreen}} >
+                    <div className="d-flex justify-content-center" style={{ ...fullScreen }} >
                         <div className="d-flex flex-column justify-content-center border border-dark" style={style}>
                             <Header text="25 + 5 Clock" />
                             <div className="d-flex flex-row justify-content-center">
-                                <BreakContainer 
+                                <BreakContainer
                                     breakLength={this.state.breakLength}
                                     handleBreakLengthInc={this.handleBreakLengthInc}
-                                    handleBreakLengthDec={this.handleBreakLengthDec}/>
-                                <SessionContainer 
+                                    handleBreakLengthDec={this.handleBreakLengthDec} />
+                                <SessionContainer
                                     sessionLength={this.state.sessionLength}
                                     handleSessionLengthInc={this.handleSessionLengthInc}
-                                    handleSessionLengthDec={this.handleSessionLengthDec}/>
+                                    handleSessionLengthDec={this.handleSessionLengthDec} />
                             </div>
-                            <TimerContainer timeLeft={{...this.state.timeLeft}}/>
+                            <TimerContainer
+                                timeLeft={{ ...this.state.timeLeft }}
+                                toggleTimer={this.toggleTimer}
+                                reset={this.reset} />
                         </div>
                     </div>
                 )
