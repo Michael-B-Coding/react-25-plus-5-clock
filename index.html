@@ -48,38 +48,54 @@
         }
 
         const BreakContainer = (props) => {
+
             return (
                 <div className="d-flex flex-column justify-content-center">
                     <label id="break-label">Break Length</label>
                     <div className="d-flex flex-row justify-content-center">
                         <button
-                            id="break-increment"
+                            id="break-decrement"
                             onClick={props.handleBreakLengthDec}><i class="bi bi-arrow-down"></i></button>
                         <label id="break-length">{props.breakLength}</label>
                         <button
-                            id="break-decrement"
+                            id="break-increment"
                             onClick={props.handleBreakLengthInc}><i class="bi bi-arrow-up"></i></button>
                     </div>
                 </div>
             )
         }
+
         const SessionContainer = (props) => {
+
             return (
                 <div className="d-flex flex-column justify-content-center">
                     <label id="session-label" className="d-flex justify-content-center">Session Length</label>
                     <div className="d-flex flex-row justify-content-center">
                         <button
-                            id="session-increment"
+                            id="session-decrement"
                             onClick={props.handleSessionLengthDec}><i class="bi bi-arrow-down"></i></button>
                         <label id="session-length">{props.sessionLength}</label>
                         <button
-                            id="session-decrement"
+                            id="session-increment"
                             onClick={props.handleSessionLengthInc}><i class="bi bi-arrow-up"></i></button>
                     </div>
                 </div>
             )
         }
         const TimerContainer = (props) => {
+
+            React.useEffect(() => {
+                //console.log("useEffect");
+                if(props.play){
+                    document.getElementById("beep").play();
+                } else {
+                    document.getElementById("beep").pause();
+                    document.getElementById("beep").currentTime = 0;
+                }
+            });
+
+            
+
             let mm = props.timeLeft.min;
             let ss = props.timeLeft.sec;
 
@@ -91,14 +107,24 @@
                 return Number(mm) - 1;
             }
 
+            let formatNumberToTwoDigitString = (num) => {
+                return String(num).padStart(2, "0");
+            }
+
             return (
                 <div className="d-flex flex-column justify-content-center">
-                    <label id="timer-label" className="d-flex justify-content-center">Session</label>
-                    <label id="time-left" className="d-flex justify-content-center">{mm}:{ss}</label>
+                    <label id="timer-label" className="d-flex justify-content-center">{props.activeTimer}</label>
+                    <label id="time-left" className="d-flex justify-content-center">{formatNumberToTwoDigitString(mm)}:{formatNumberToTwoDigitString(ss)}</label>
                     <div className="d-flex flex-row justify-content-center">
                         <button id="start_stop" onClick={props.toggleTimer}><i class="bi bi-play"></i><i class="bi bi-pause"></i></button>
                         <button id="reset" onClick={props.reset}><i class="bi bi-arrow-counterclockwise"></i></button>
                     </div>
+                    <audio
+                        id="beep"
+                        src="https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3">
+                        Your browser does not support the
+                        <code>audio</code> element.
+                    </audio>
                 </div>
             )
         }
@@ -111,16 +137,17 @@
                 this.state = {
                     breakLength: 5,
                     sessionLength: 25,
-                    activeTimer: "session",
+                    activeTimer: "Session",
                     timeSet: {
-                        min: "25",
-                        sec: "00"
+                        min: 25,
+                        sec: 0
                     },
                     timeLeft: {
-                        min: "25",
-                        sec: "00"
+                        min: 25,
+                        sec: 0
                     },
-                    timerRunning: false
+                    timerRunning: false,
+                    timerComplete: false
                 };
 
                 this.timerObject = null;
@@ -134,24 +161,25 @@
                 this.handleSessionLengthDec = this.handleSessionLengthDec.bind(this);
             }
 
-            componentDidUpdate = (prevProps, prevState) => {
+            /* componentDidUpdate = (prevProps, prevState) => {
                 console.log(this.state);
-            }
+            } */
 
             setDefaults = () => {
                 this.setState(() => ({
                     breakLength: 5,
                     sessionLength: 25,
-                    activeTimer: "session",
+                    activeTimer: "Session",
                     timeSet: {
-                        min: "25",
-                        sec: "00"
+                        min: 25,
+                        sec: 0
                     },
                     timeLeft: {
-                        min: "25",
-                        sec: "00"
+                        min: 25,
+                        sec: 0
                     },
-                    timerRunning: false
+                    timerRunning: false,
+                    timerComplete: false
                 }));
             }
 
@@ -168,8 +196,10 @@
                 this.setState((prevState) => ({
                     breakLength: prevState.breakLength + 1
                 }));
-                this.updateTimeSet();
-                this.updateTimeLeft();
+                if(this.state.activeTimer == "Break"){
+                    this.updateTimeSet();
+                    this.updateTimeLeft();
+                }
             }
             handleBreakLengthDec = () => {
                 // dont allow decrementing to 0
@@ -180,8 +210,10 @@
                 this.setState((prevState) => ({
                     breakLength: prevState.breakLength - 1
                 }));
-                this.updateTimeSet();
-                this.updateTimeLeft();
+                if(this.state.activeTimer == "Break"){
+                    this.updateTimeSet();
+                    this.updateTimeLeft();
+                }
             }
 
             handleSessionLengthInc = () => {
@@ -193,8 +225,10 @@
                 this.setState((prevState) => ({
                     sessionLength: prevState.sessionLength + 1
                 }));
-                this.updateTimeSet();
-                this.updateTimeLeft();
+                if(this.state.activeTimer == "Session"){
+                    this.updateTimeSet();
+                    this.updateTimeLeft();
+                }
             }
             handleSessionLengthDec = () => {
                 // dont allow decrementing to 0
@@ -205,33 +239,59 @@
                 this.setState((prevState) => ({
                     sessionLength: prevState.sessionLength - 1
                 }));
-                this.updateTimeSet();
-                this.updateTimeLeft();
+                if(this.state.activeTimer == "Session"){
+                    this.updateTimeSet();
+                    this.updateTimeLeft();
+                }
             }
 
             updateTimeSet = () => {
                 this.setState((prevState) => ({
-                    timeSet: prevState.activeTimer == "session" ? { min: this.formatNumberToTwoDigitString(prevState.sessionLength), sec: "00" } : { min: this.formatNumberToTwoDigitString(prevState.breakLength), sec: "00" }
+                    timeSet: prevState.activeTimer == "Session" ?
+                        { min: prevState.sessionLength, sec: prevState.timeLeft.sec } : // set session time
+                        { min: prevState.breakLength, sec: prevState.timeLeft.sec } // set break time
                 }));
             }
             updateTimeLeft = () => {
                 this.setState((prevState) => ({
-                    timeLeft: !prevState.timerRunning ? prevState.timeSet : prevState.timeLeft
+                    timeLeft: !prevState.timerRunning ?
+                        prevState.timeSet :
+                        prevState.timeLeft
                 }));
             }
+
 
             reset = () => {
                 this.stopTimer();
                 this.setDefaults();
             }
 
+            swapTimer = () => {
+                this.setState((prevState) => ({
+                    activeTimer: prevState.activeTimer == "Session" ? "Break" : "Session"
+                }));
+            }
+
             timerTick = () => {
-                console.log("tick");
-                let sec = Number(this.state.timeLeft.sec) == 0 ? 59 : Number(this.state.timeLeft.sec) - 1;
-                let min = Number(this.state.timeLeft.sec) == 0 ? Number(this.state.timeLeft.min) - 1 : Number(this.state.timeLeft.min);
+                //console.log("tick");
+                // Time has reached 00:00
+                if (this.state.timeLeft.min == 0 && this.state.timeLeft.sec == 0) {
+                    this.setState(() => ({
+                        timerComplete: true
+                    }));
+                    this.stopTimer();
+                    this.swapTimer();
+                    this.updateTimeSet();
+                    this.updateTimeLeft();
+                    this.startTimer();
+                    return;
+                }
+
+                let sec = (this.state.timeLeft.min != 0 && this.state.timeLeft.sec == 0) ? 59 : this.state.timeLeft.sec - 1;
+                let min = this.state.timeLeft.sec == 0 ? this.state.timeLeft.min - 1 : this.state.timeLeft.min;
                 this.setState((prevState) => ({
                     //timeLeft: Object.assign({}, prevState.timeLeft, { min: min })
-                    timeLeft: { min: this.formatNumberToTwoDigitString(min), sec: this.formatNumberToTwoDigitString(sec) }
+                    timeLeft: { min: min, sec: sec }
                 }));
             }
 
@@ -247,7 +307,7 @@
                 if (!this.state.timerRunning) {
                     this.timerObject = setInterval(
                         this.timerTick,
-                        1000
+                        100
                     );
                     this.setState({
                         timerRunning: true
@@ -289,7 +349,9 @@
                                     handleSessionLengthDec={this.handleSessionLengthDec} />
                             </div>
                             <TimerContainer
+                                activeTimer={this.state.activeTimer}
                                 timeLeft={{ ...this.state.timeLeft }}
+                                play={this.state.timerComplete}
                                 toggleTimer={this.toggleTimer}
                                 reset={this.reset} />
                         </div>
